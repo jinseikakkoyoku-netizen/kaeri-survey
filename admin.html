@@ -516,23 +516,15 @@ ${allText}
 日本語で出力してください。`;
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      // GAS経由でClaude APIを呼び出す（CORSを回避）
+      const res = await fetch(GAS_URL, {
         method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-calls': 'true',
-        },
-        body: JSON.stringify({
-          model: 'claude-opus-4-8',
-          max_tokens: 2000,
-          messages: [{ role: 'user', content: prompt }],
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'generate', prompt, apiKey }),
       });
       const json = await res.json();
-      if (json.error) throw new Error(json.error.message);
-      const text = json.content[0].text;
+      if (json.status === 'error') throw new Error(json.message);
+      const text = json.text;
 
       const meta = `${responses.length}名の回答から生成 — ${new Date().toLocaleString('ja-JP')}`;
       showGuideline(text, meta);
