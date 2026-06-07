@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>還りの里 — 本来の自分への問い</title>
+  <style>
+    :root {
+      --bg: #faf8f4;
+      --bg-card: #ffffff;
+      --text: #2c2826;
+      --text-light: #6b5f58;
+      --border: #e8e0d5;
+      --accent: #8b6914;
+      --accent-light: #f5ede0;
+      --mind: #4a7b9d;
+      --mind-light: #eaf2f8;
+      --mind-border: #c3dded;
+      --body: #4d8f59;
+      --body-light: #eaf4ec;
+      --body-border: #b8ddbf;
+      --soul: #7b4a7a;
+      --soul-light: #f3eaf3;
+      --soul-border: #d4b3d3;
+      --shadow: 0 2px 16px rgba(44,40,38,0.08);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Mincho ProN', 'Yu Mincho', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ヘッダー */
+    .hero {
+      background: linear-gradient(160deg, #2c3a2a 0%, #1a2818 60%, #0d1a1a 100%);
+      color: #fff;
+      padding: 56px 24px 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .hero-label {
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 400;
+      letter-spacing: 0.05em;
+      line-height: 1.4;
+      margin-bottom: 20px;
+    }
+    .hero h1 span {
+      display: block;
+      font-size: 0.6em;
+      color: rgba(255,255,255,0.65);
+      letter-spacing: 0.15em;
+      margin-top: 8px;
+    }
+    .hero p {
+      font-size: 15px;
+      line-height: 1.9;
+      color: rgba(255,255,255,0.75);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* 本文コンテナ */
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 20px 80px;
+    }
+
+    /* 導入テキスト */
+    .intro {
+      margin: 40px 0 48px;
+      padding: 32px;
+      background: var(--accent-light);
+      border-radius: var(--radius);
+      border-left: 4px solid var(--accent);
+    }
+    .intro p {
+      font-size: 15px;
+      line-height: 2;
+      color: #4a3a00;
+    }
+    .intro strong { color: var(--accent); }
+
+    /* セクション共通 */
+    .section {
+      margin-bottom: 48px;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+    .section-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .section-title {
+      font-size: 22px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+    }
+    .section-subtitle {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+
+    /* 心 */
+    .section-mind .section-icon { background: var(--mind-light); }
+    .section-mind .section-title { color: var(--mind); }
+    .section-mind .example-box { border-color: var(--mind-border); background: var(--mind-light); }
+    .section-mind .example-box .example-label { color: var(--mind); }
+    .section-mind textarea:focus { border-color: var(--mind); box-shadow: 0 0 0 3px rgba(74,123,157,0.15); }
+
+    /* 体 */
+    .section-body .section-icon { background: var(--body-light); }
+    .section-body .section-title { color: var(--body); }
+    .section-body .example-box { border-color: var(--body-border); background: var(--body-light); }
+    .section-body .example-box .example-label { color: var(--body); }
+    .section-body textarea:focus { border-color: var(--body); box-shadow: 0 0 0 3px rgba(77,143,89,0.15); }
+
+    /* 魂 */
+    .section-soul .section-icon { background: var(--soul-light); }
+    .section-soul .section-title { color: var(--soul); }
+    .section-soul .example-box { border-color: var(--soul-border); background: var(--soul-light); }
+    .section-soul .example-box .example-label { color: var(--soul); }
+    .section-soul textarea:focus { border-color: var(--soul); box-shadow: 0 0 0 3px rgba(123,74,122,0.15); }
+
+    /* 見本ボックス */
+    .example-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-light);
+      cursor: pointer;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: #fff;
+      margin-bottom: 16px;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .example-toggle:hover { background: var(--bg); border-color: var(--text-light); }
+    .example-toggle .icon { font-size: 16px; transition: transform 0.3s; }
+    .example-toggle.open .icon { transform: rotate(180deg); }
+
+    .example-box {
+      border: 1px solid;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    .example-box.visible { display: block; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .example-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .example-item {
+      margin-bottom: 16px;
+    }
+    .example-item:last-child { margin-bottom: 0; }
+    .example-item-q {
+      font-size: 11px;
+      color: var(--text-light);
+      margin-bottom: 4px;
+      font-style: italic;
+    }
+    .example-item-a {
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--text);
+    }
+
+    /* フォームフィールド */
+    .field-group {
+      margin-bottom: 24px;
+    }
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+      letter-spacing: 0.02em;
+    }
+    label .req {
+      color: #c0392b;
+      margin-left: 4px;
+      font-size: 12px;
+    }
+    label .opt {
+      color: var(--text-light);
+      margin-left: 6px;
+      font-size: 11px;
+      font-weight: 400;
+    }
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 14px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--text);
+      background: #fff;
+      resize: vertical;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+    textarea::placeholder { color: #bbb; }
+    textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(139,105,20,0.12); }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 13px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+      font-size: 15px;
+      color: var(--text);
+      background: #fff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+    input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(139,105,20,0.12);
+    }
+
+    /* 名前フィールド */
+    .field-name {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 40px;
+      box-shadow: var(--shadow);
+    }
+
+    /* 送信 */
+    .submit-area {
+      text-align: center;
+      padding: 40px 24px;
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .submit-area p {
+      font-size: 14px;
+      color: var(--text-light);
+      line-height: 1.8;
+      margin-bottom: 24px;
+    }
+    .btn-submit {
+      display: inline-block;
+      padding: 16px 48px;
+      background: linear-gradient(135deg, #8b6914, #b8920e);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      font-size: 16px;
+      font-family: inherit;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(139,105,20,0.35);
+      transition: all 0.2s;
+    }
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(139,105,20,0.4);
+    }
+    .btn-submit:active { transform: translateY(0); }
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* 送信完了 */
+    .success-message {
+      display: none;
+      text-align: center;
+      padding: 40px 24px;
+      background: #eaf4ec;
+      border-radius: var(--radius);
+      border: 1px solid var(--body-border);
+    }
+    .success-message .icon { font-size: 48px; margin-bottom: 16px; }
+    .success-message h2 { font-size: 22px; color: var(--body); margin-bottom: 12px; font-weight: 400; }
+    .success-message p { font-size: 14px; color: #3a6b44; line-height: 1.9; }
+
+    /* エラー */
+    .error-msg {
+      display: none;
+      padding: 12px 16px;
+      background: #fef0f0;
+      border: 1px solid #e8c5c5;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #c0392b;
+      margin-top: 12px;
+    }
+
+    /* 設定バナー */
+    .config-banner {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: #856404;
+      margin-bottom: 24px;
+      display: none;
+    }
+    .config-banner.show { display: block; }
+
+    /* フッター */
+    footer {
+      text-align: center;
+      padding: 32px;
+      font-size: 12px;
+      color: var(--text-light);
+      letter-spacing: 0.1em;
+    }
+
+    @media (max-width: 600px) {
+      .hero { padding: 40px 20px 36px; }
+      .container { padding: 0 16px 60px; }
+      .intro { padding: 20px; }
+      .field-name { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-label">還りの里 — アンケート</div>
+  <h1>
+    本来の自分に還るということ
+    <span>What does it mean to return to your true self?</span>
+  </h1>
+  <p>心・体・魂の3つが最高に整った状態とは、どんな状態でしょうか。<br>あなた自身の言葉で、自由に、正直に書いてください。</p>
+</header>
+
+<div class="container">
+
+  <div class="intro">
+    <p>
+      <strong>このアンケートについて</strong><br>
+      還りの里では、「本来の自分に還る」を共に探求しています。<br>
+      みなさんの答えを統合して、「還りの里でみんなが目指す姿」を一緒に作ります。<br><br>
+      正解はありません。頭で考えすぎず、心に浮かんだことをそのまま書いてください。<br>
+      <strong>匿名でも構いません。</strong>
+    </p>
+  </div>
+
+  <!-- GAS URLが未設定の場合の警告 -->
+  <div class="config-banner" id="configBanner">
+    ⚠️ まだセットアップが完了していません。setup.mdの手順でGoogle Apps ScriptのURLを設定してください。
+    （現在はテストモードで動作中 — 送信データはブラウザのコンソールに表示されます）
+  </div>
+
+  <form id="surveyForm">
+
+    <!-- お名前 -->
+    <div class="field-name">
+      <div class="field-group">
+        <label for="name">お名前（またはニックネーム）<span class="opt">任意</span></label>
+        <input type="text" id="name" name="name" placeholder="例：翔吾、さくら、山田">
+      </div>
+    </div>
+
+    <!-- ━━━ 心 ━━━ -->
+    <div class="section section-mind">
+      <div class="section-header">
+        <div class="section-icon">🌊</div>
+        <div>
+          <div class="section-title">心</div>
+          <div class="section-subtitle">感情・思考・精神のあり方</div>
+        </div>
+      </div>
+
+      <button type="button" class="example-toggle" onclick="toggleExample('mind')">
+        <span class="icon">▼</span> 見本を見る（どう書けばいいか分からないとき）
+      </button>
+
+      <div class="example-box" id="example-mind">
+        <div class="example-label">✦ 見本（記入例）</div>
+        <div class="example-item">
+          <div class="example-item-q">① 今、正直なところ…</div>
+          <div class="example-item-a">感情に振り回されることがある。怒りや不安が出てきたとき、それをうまくコントロールできず後で後悔することがある。他人の目が気になって、本当に感じていることを隠してしまうこともある。</div>
+        </div>
+        <div class="example-item">
+          <div class="example-item-q">② こんな心の状態になれたら「最高に整った」と言える…</div>
+          <div class="example-item-a">何があっても中心軸がぶれない、静かな愛の中にある状態。怒りも悲しみも、すべて受け入れられる大きな器がある。人の目ではなく、自分の魂が喜ぶかどうかで判断できる。毎朝起きたとき、ただ存在していることへの感謝が自然に溢れてくる。</div>
+        </div>
+        <div class="example-item">
+          <div class="example-item-q">③ そのために必要なことは…</div>
+          <div class="example-item-a">毎朝の瞑想・静寂の時間。自分の感情を裁かずにただ観察する練習。心が安心できるコミュニティとの繋がり。「結果を手放す」委ねることの日々の実践。</div>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label for="mind_current">① 今の心の状態を、正直に教えてください<span class="req">*</span></label>
+        <textarea id="mind_current" name="mind_current" required
+          placeholder="今、心はどんな状態ですか？うまくいっていること、課題に感じていること、何でも。"></textarea>
+      </div>
+
+      <div class="field-group">
+        <label for="mind_ideal">② 心が「最高に整った最高の状態」とはどんな状態ですか？<span class="req">*</span></label>
+        <textarea id="mind_ideal" name="mind_ideal" required
+          placeholder="こんな心でいられたら最高だ、という状態を自由に書いてください。"></textarea>
+      </div>
+
+      <div class="field-group">
+        <label for="mind_needs">③ その状態になるために、何が必要だと感じますか？<span class="opt">任意</span></label>
+        <textarea id="mind_needs" name="mind_needs"
+          placeholder="習慣、環境、実践、人との関わり…何でも思いつくままに。"></textarea>
+      </div>
+    </div>
+
+    <!-- ━━━ 体 ━━━ -->
+    <div class="section section-body">
+      <div class="section-header">
+        <div class="section-icon">🌿</div>
+        <div>
+          <div class="section-title">体</div>
+          <div class="section-subtitle">肉体・健康・エネルギーのあり方</div>
+        </div>
+      </div>
+
+      <button type="button" class="example-toggle" onclick="toggleExample('body')">
+        <span class="icon">▼</span> 見本を見る（どう書けばいいか分からないとき）
+      </button>
+
+      <div class="example-box" id="example-body">
+        <div class="example-label">✦ 見本（記入例）</div>
+        <div class="example-item">
+          <div class="example-item-q">① 今、正直なところ…</div>
+          <div class="example-item-a">仕事が忙しいと睡眠を後回しにしてしまう。体の疲れに気づきながら、それを無視して動き続けることがある。食事も時間がないと適当になりがち。もっと体を大切にしたいとは思っているけれど、後回しになっている。</div>
+        </div>
+        <div class="example-item">
+          <div class="example-item-q">② こんな体の状態になれたら「最高に整った」と言える…</div>
+          <div class="example-item-a">体が喜んでいるのを感じられる状態。軽やかで、エネルギーに満ちている。何を食べたいか、いつ休みたいか、体が自然に教えてくれる。健康的な食事・運動・睡眠のリズムが、義務でなく喜びになっている。体を神殿として大切にしている。</div>
+        </div>
+        <div class="example-item">
+          <div class="example-item-q">③ そのために必要なことは…</div>
+          <div class="example-item-a">規則正しい生活リズム。体を喜ばせる食事と、楽しめる運動。自然の中で過ごす時間。自分の体への感謝と丁寧な対話。</div>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label for="body_current">① 今の体の状態を、正直に教えてください<span class="req">*</span></label>
+        <textarea id="body_current" name="body_current" required
+          placeholder="健康状態、エネルギーの感覚、体への向き合い方…今の正直な状態を。"></textarea>
+      </div>
+
+      <div class="field-group">
+        <label for="body_ideal">② 体が「最高に整った最高の状態」とはどんな状態ですか？<span class="req">*</span></label>
+        <textarea id="body_ideal" name="body_ideal" required
+          placeholder="こんな体でいられたら最高だ、という状態を自由に書いてください。"></textarea>
+      </div>
+
+      <div class="field-group">
+        <label for="body_needs">③ その状態になるために、何が必要だと感じますか？<span class="opt">任意</span></label>
+        <textarea id="body_needs" name="body_needs"
+          placeholder="食事、運動、睡眠、習慣、環境…何でも思いつくままに。"></textarea>
+      </div>
+    </div>
+
+    <!-- ━━━ 魂 ━━━ -->
+    <div class="section section-soul">
+      <div class="section-header">
+        <div class="section-icon">✨</div>
+        <div>
+          <div class="section-title">魂</div>
+          <div class="section-subtitle">使命・つながり・存在の意味</div>
+        </div>
+      </div>
+
+      <button type="button" class="example-toggle" onclick="toggleExample('soul')">
+        <span class="icon">▼</span> 見本を見る（どう書けばいいか分からないとき）
+      </button>
+
+      <div class="example-box" id="example-soul">
+        <div class="example-label">✦ 見本（記入例）</div>
+        <div class="example-item">
+          <div class="example-item-q">① 今、正直なところ…</div>
+          <div class="example-item-a">何のために生きているのか、ふと分からなくなる瞬間がある。毎日を一生懸命やってはいるけれど、魂が震えるような使命感をいつも感じられているわけではない。もっと深いところで何かと繋がりたいと感じている。</div>
+        </div>
+        <div class="example-item">
+          <div class="example-item-q">② こんな魂の状態になれたら「最高に整った」と言える…</div>
+          <div class="example-item-a">自分が何者で、なぜここにいるのかを深く知っている状態。存在しているだけで意味があると感じられる。日々の小さな行動が宇宙の大きな流れの一部だと実感できる。魂が歌っている。神様・大いなるものと繋がっている感覚がある。</div>
+        </div>
+        <div class="example-item">
+          <div class="example-item-q">③ そのために必要なことは…</div>
+          <div class="example-item-a">深い内省と瞑想の時間。魂のレベルで繋がれる仲間との対話。過去の傷やカルマを解消していく実践。大いなるものへの委ねと信頼。自然・宇宙との繋がりを感じる時間。</div>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label for="soul_current">① 今の魂の状態を、正直に教えてください<span class="req">*</span></label>
+        <textarea id="soul_current" name="soul_current" required
+          placeholder="使命感、生きがい、つながりの感覚…今の正直な状態を。"></textarea>
+      </div>
+
+      <div class="field-group">
+        <label for="soul_ideal">② 魂が「最高に整った最高の状態」とはどんな状態ですか？<span class="req">*</span></label>
+        <textarea id="soul_ideal" name="soul_ideal" required
+          placeholder="こんな魂でいられたら最高だ、という状態を自由に書いてください。"></textarea>
+      </div>
+
+      <div class="field-group">
+        <label for="soul_needs">③ その状態になるために、何が必要だと感じますか？<span class="opt">任意</span></label>
+        <textarea id="soul_needs" name="soul_needs"
+          placeholder="実践、環境、人との関わり、内省…何でも思いつくままに。"></textarea>
+      </div>
+    </div>
+
+    <!-- 最後に一言 -->
+    <div class="section">
+      <div class="field-group">
+        <label for="free_comment">最後に一言、自由に<span class="opt">任意</span></label>
+        <textarea id="free_comment" name="free_comment" style="min-height: 90px;"
+          placeholder="還りの里への想い、このアンケートへの感想、今感じていること…何でも。"></textarea>
+      </div>
+    </div>
+
+    <!-- 送信エリア -->
+    <div class="submit-area" id="submitArea">
+      <p>
+        すべて記入できたら、送信してください。<br>
+        みなさんの言葉が統合されて、「還りの里の指針」になります。
+      </p>
+      <div class="error-msg" id="errorMsg"></div>
+      <button type="submit" class="btn-submit" id="submitBtn">
+        ✦ 送信する
+      </button>
+    </div>
+
+  </form>
+
+  <!-- 送信完了メッセージ -->
+  <div class="success-message" id="successMsg">
+    <div class="icon">🌿</div>
+    <h2>ありがとうございます</h2>
+    <p>
+      あなたの言葉を受け取りました。<br>
+      みなさんの想いを統合して、「還りの里でみんなが目指す姿」を作っていきます。<br><br>
+      本来の自分への旅を、一緒に歩みましょう。
+    </p>
+  </div>
+
+</div>
+
+<footer>
+  還りの里 ✦ 本来の自分に還る場所
+</footer>
+
+<script>
+  // Google Apps Script WebアプリのURLをここに設定
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbxfyoeJVGzxNUUToXFoaTE-41Ev0boDlMeUmox_2F5VqlTeiNUfOfcTQwovRcwJ7Wdf/exec'; 
+
+  // 起動時：URLが未設定かチェック
+  if (!GAS_URL) {
+    document.getElementById('configBanner').classList.add('show');
+  }
+
+  // 見本の表示/非表示
+  function toggleExample(section) {
+    const box = document.getElementById('example-' + section);
+    const btn = box.previousElementSibling;
+    const isVisible = box.classList.contains('visible');
+    box.classList.toggle('visible', !isVisible);
+    btn.classList.toggle('open', !isVisible);
+  }
+
+  // フォーム送信
+  document.getElementById('surveyForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const btn = document.getElementById('submitBtn');
+    const errorMsg = document.getElementById('errorMsg');
+    errorMsg.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = '送信中…';
+
+    const data = {
+      timestamp: new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }),
+      name: document.getElementById('name').value || '（匿名）',
+      mind_current:  document.getElementById('mind_current').value,
+      mind_ideal:    document.getElementById('mind_ideal').value,
+      mind_needs:    document.getElementById('mind_needs').value,
+      body_current:  document.getElementById('body_current').value,
+      body_ideal:    document.getElementById('body_ideal').value,
+      body_needs:    document.getElementById('body_needs').value,
+      soul_current:  document.getElementById('soul_current').value,
+      soul_ideal:    document.getElementById('soul_ideal').value,
+      soul_needs:    document.getElementById('soul_needs').value,
+      free_comment:  document.getElementById('free_comment').value,
+    };
+
+    // GAS URL未設定の場合はテストモード
+    if (!GAS_URL) {
+      console.log('【テストモード】送信データ:', JSON.stringify(data, null, 2));
+      await new Promise(r => setTimeout(r, 800));
+      showSuccess();
+      return;
+    }
+
+    try {
+      // no-corsで送信（GASの制約上、レスポンスは読めないがデータは届く）
+      await fetch(GAS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      showSuccess();
+    } catch (err) {
+      errorMsg.textContent = '送信中にエラーが発生しました。もう一度お試しください。';
+      errorMsg.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = '✦ 送信する';
+    }
+  });
+
+  function showSuccess() {
+    document.getElementById('surveyForm').style.display = 'none';
+    document.getElementById('successMsg').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+
+</body>
+</html>
