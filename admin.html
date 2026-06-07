@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>還りの里 — 管理者ページ（集計・指針生成）</title>
+  <style>
+    :root {
+      --bg: #f7f5f2;
+      --card: #ffffff;
+      --text: #2c2826;
+      --text-light: #6b5f58;
+      --border: #e4dcd5;
+      --accent: #8b6914;
+      --accent-light: #f5ede0;
+      --mind: #4a7b9d;
+      --mind-light: #eaf2f8;
+      --body: #4d8f59;
+      --body-light: #eaf4ec;
+      --soul: #7b4a7a;
+      --soul-light: #f3eaf3;
+      --shadow: 0 2px 12px rgba(44,40,38,0.08);
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ヘッダー */
+    .topbar {
+      background: #1a2818;
+      color: #fff;
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .topbar h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.05em; }
+    .topbar p { font-size: 12px; color: rgba(255,255,255,0.55); }
+    .topbar-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .btn { padding: 8px 18px; border-radius: 8px; font-size: 13px; font-family: inherit; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-refresh { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+    .btn-refresh:hover { background: rgba(255,255,255,0.2); }
+    .btn-export { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+    .btn-export:hover { background: rgba(255,255,255,0.2); }
+
+    /* GAS設定バー */
+    .setup-bar {
+      background: #fff3cd;
+      border-bottom: 1px solid #ffe69c;
+      padding: 12px 28px;
+      font-size: 13px;
+      color: #664d03;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .setup-bar.show { display: flex; }
+    .setup-bar input {
+      flex: 1;
+      min-width: 280px;
+      padding: 7px 12px;
+      border: 1px solid #ffc107;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: monospace;
+    }
+    .btn-save-url { background: #856404; color: #fff; padding: 7px 16px; }
+    .btn-save-url:hover { background: #664d03; }
+
+    /* メインレイアウト */
+    .layout { display: flex; gap: 0; min-height: calc(100vh - 120px); }
+
+    /* サイドバー */
+    .sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      padding: 24px 20px;
+      overflow-y: auto;
+    }
+    .sidebar h2 { font-size: 13px; color: var(--text-light); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; }
+
+    /* 統計カード */
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg); border-radius: 10px; padding: 14px 12px; text-align: center; }
+    .stat-card .num { font-size: 26px; font-weight: 700; color: var(--accent); line-height: 1; }
+    .stat-card .label { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+
+    /* 参加者リスト */
+    .participant-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 24px; }
+    .participant-item {
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: all 0.15s;
+      font-size: 13px;
+    }
+    .participant-item:hover { background: var(--bg); }
+    .participant-item.active { background: var(--accent-light); border-color: var(--accent); }
+    .participant-item .p-name { font-weight: 600; color: var(--text); }
+    .participant-item .p-time { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+
+    /* 生成ボタン */
+    .btn-generate {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #8b6914, #b8920e);
+      color: #fff;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      box-shadow: 0 4px 16px rgba(139,105,20,0.3);
+      margin-bottom: 10px;
+    }
+    .btn-generate:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(139,105,20,0.4); }
+    .btn-generate:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .gen-note { font-size: 11px; color: var(--text-light); line-height: 1.6; }
+
+    /* API設定 */
+    .api-setting { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+    .api-setting label { font-size: 12px; color: var(--text-light); display: block; margin-bottom: 6px; }
+    .api-setting input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: monospace;
+      margin-bottom: 8px;
+      background: var(--bg);
+    }
+    .api-note { font-size: 11px; color: var(--text-light); line-height: 1.5; }
+
+    /* メインコンテンツ */
+    .main { flex: 1; padding: 28px; overflow-y: auto; }
+
+    /* タブ */
+    .tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--card); border-radius: 10px; padding: 4px; border: 1px solid var(--border); width: fit-content; }
+    .tab { padding: 8px 20px; border-radius: 7px; font-size: 13px; cursor: pointer; border: none; background: transparent; color: var(--text-light); transition: all 0.15s; font-family: inherit; }
+    .tab.active { background: var(--accent); color: #fff; font-weight: 600; }
+    .tab:hover:not(.active) { background: var(--bg); color: var(--text); }
+
+    /* 全回答ビュー */
+    .responses-grid { display: flex; flex-direction: column; gap: 20px; }
+    .response-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .response-card-header {
+      padding: 16px 20px;
+      background: #f9f7f5;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .response-card-header .r-name { font-weight: 700; font-size: 15px; }
+    .response-card-header .r-time { font-size: 12px; color: var(--text-light); }
+    .response-card-body { padding: 20px; }
+    .r-section { margin-bottom: 20px; }
+    .r-section:last-child { margin-bottom: 0; }
+    .r-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+    .r-section.mind .r-section-title { background: var(--mind-light); color: var(--mind); }
+    .r-section.body .r-section-title { background: var(--body-light); color: var(--body); }
+    .r-section.soul .r-section-title { background: var(--soul-light); color: var(--soul); }
+    .r-row { margin-bottom: 10px; }
+    .r-row-q { font-size: 11px; color: var(--text-light); margin-bottom: 3px; }
+    .r-row-a { font-size: 14px; line-height: 1.8; white-space: pre-wrap; }
+    .r-comment { padding: 12px 16px; background: var(--bg); border-radius: 8px; font-size: 14px; line-height: 1.8; border-left: 3px solid var(--accent); margin-top: 12px; color: var(--text-light); font-style: italic; }
+
+    /* 統合ビュー */
+    .summary-view { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 28px; box-shadow: var(--shadow); }
+    .summary-view h2 { font-size: 18px; font-weight: 400; color: var(--accent); margin-bottom: 8px; }
+    .summary-view .summary-meta { font-size: 12px; color: var(--text-light); margin-bottom: 24px; }
+    .summary-content { font-size: 15px; line-height: 2; white-space: pre-wrap; color: var(--text); }
+    .summary-content.loading { color: var(--text-light); font-style: italic; }
+    .copy-btn { margin-top: 20px; padding: 10px 24px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; cursor: pointer; font-family: inherit; }
+    .copy-btn:hover { background: var(--border); }
+
+    /* 空状態 */
+    .empty-state { text-align: center; padding: 80px 20px; color: var(--text-light); }
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state p { font-size: 14px; line-height: 1.9; }
+
+    /* ローディング */
+    .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* エラー */
+    .error-banner { background: #fef0f0; border: 1px solid #e8c5c5; border-radius: 10px; padding: 14px 18px; font-size: 13px; color: #c0392b; margin-bottom: 20px; }
+
+    /* レスポンシブ */
+    @media (max-width: 768px) {
+      .layout { flex-direction: column; }
+      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+      .main { padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- トップバー -->
+<div class="topbar">
+  <div>
+    <h1>還りの里 — 管理者ページ</h1>
+    <p>回答の集計・閲覧・指針生成</p>
+  </div>
+  <div class="topbar-actions">
+    <button class="btn btn-refresh" onclick="loadData()">🔄 再読み込み</button>
+    <button class="btn btn-export" onclick="exportCSV()">📥 CSV出力</button>
+  </div>
+</div>
+
+<!-- GAS URL設定バー -->
+<div class="setup-bar show" id="setupBar">
+  <span>⚠️ Google Apps Script の URL を設定してください</span>
+  <input type="text" id="gasUrlInput" placeholder="https://script.google.com/macros/s/xxxxxxxxxx/exec" />
+  <button class="btn btn-save-url" onclick="saveGasUrl()">保存</button>
+</div>
+
+<div class="layout">
+
+  <!-- サイドバー -->
+  <div class="sidebar">
+    <h2>概要</h2>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="num" id="statTotal">—</div><div class="label">回答数</div></div>
+      <div class="stat-card"><div class="num" id="statToday">—</div><div class="label">本日</div></div>
+    </div>
+
+    <h2>参加者</h2>
+    <div class="participant-list" id="participantList">
+      <div style="font-size:13px;color:var(--text-light);padding:8px 0;">データを読み込み中…</div>
+    </div>
+
+    <button class="btn btn-generate" id="generateBtn" onclick="generateGuideline()" disabled>
+      ✦ 指針を生成する
+    </button>
+    <p class="gen-note">全回答をAIが統合し、「還りの里で目指す姿」の指針を生成します。</p>
+
+    <div class="api-setting">
+      <label>Claude API Key（指針生成に使用）</label>
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-..." oninput="saveApiKey(this.value)" />
+      <p class="api-note">APIキーはブラウザのローカルストレージに保存されます。外部に送信されません。</p>
+    </div>
+  </div>
+
+  <!-- メインコンテンツ -->
+  <div class="main">
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('responses')">全回答一覧</button>
+      <button class="tab" onclick="switchTab('summary')">統合指針</button>
+    </div>
+
+    <!-- 全回答ビュー -->
+    <div id="view-responses">
+      <div class="empty-state" id="emptyState">
+        <div class="icon">🌿</div>
+        <p>まだ回答がありません。<br>form.html を参加者に共有して、回答を集めましょう。</p>
+      </div>
+      <div class="responses-grid" id="responsesGrid" style="display:none;"></div>
+    </div>
+
+    <!-- 統合指針ビュー -->
+    <div id="view-summary" style="display:none;">
+      <div class="summary-view">
+        <h2>還りの里 — みんなが目指す姿</h2>
+        <div class="summary-meta" id="summaryMeta">指針をまだ生成していません。サイドバーの「指針を生成する」ボタンを押してください。</div>
+        <div class="summary-content" id="summaryContent">—</div>
+        <button class="copy-btn" onclick="copySummary()" style="display:none;" id="copyBtn">📋 コピーする</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ───── 設定 ─────
+  let GAS_URL = localStorage.getItem('kaeri_gas_url') || '';
+  let responses = [];
+  let currentTab = 'responses';
+
+  const CLAUDE_API_KEY_STORAGE = 'kaeri_claude_key';
+
+  // 起動時
+  window.addEventListener('DOMContentLoaded', () => {
+    // 保存済みURLがあれば設定
+    if (GAS_URL) {
+      document.getElementById('gasUrlInput').value = GAS_URL;
+      document.getElementById('setupBar').classList.remove('show');
+    }
+    // APIキー復元
+    const key = localStorage.getItem(CLAUDE_API_KEY_STORAGE);
+    if (key) document.getElementById('apiKeyInput').value = key;
+    // 指針復元
+    const saved = localStorage.getItem('kaeri_guideline');
+    if (saved) {
+      const obj = JSON.parse(saved);
+      showGuideline(obj.text, obj.meta);
+    }
+
+    loadData();
+  });
+
+  // ───── GAS URL保存 ─────
+  function saveGasUrl() {
+    const url = document.getElementById('gasUrlInput').value.trim();
+    if (!url.startsWith('https://script.google.com/')) {
+      alert('Google Apps Script の URL を入力してください。\n例: https://script.google.com/macros/s/.../exec');
+      return;
+    }
+    GAS_URL = url;
+    localStorage.setItem('kaeri_gas_url', url);
+    document.getElementById('setupBar').classList.remove('show');
+    loadData();
+  }
+
+  // ───── APIキー保存 ─────
+  function saveApiKey(v) {
+    localStorage.setItem(CLAUDE_API_KEY_STORAGE, v);
+  }
+
+  // ───── データ取得 ─────
+  async function loadData() {
+    if (!GAS_URL) {
+      // テストモード: ダミーデータ
+      responses = getDummyData();
+      renderAll();
+      return;
+    }
+    try {
+      const res = await fetch(GAS_URL + '?action=get');
+      const json = await res.json();
+      responses = json.data || [];
+      renderAll();
+    } catch (e) {
+      console.error('データ取得失敗:', e);
+      document.getElementById('responsesGrid').innerHTML =
+        '<div class="error-banner">データの取得に失敗しました。GASのURLとデプロイ設定を確認してください。</div>';
+      document.getElementById('responsesGrid').style.display = 'block';
+      document.getElementById('emptyState').style.display = 'none';
+    }
+  }
+
+  // ───── 描画 ─────
+  function renderAll() {
+    // 統計
+    document.getElementById('statTotal').textContent = responses.length;
+    const today = new Date().toLocaleDateString('ja-JP');
+    const todayCount = responses.filter(r => r.timestamp && r.timestamp.startsWith(today.replace(/\//g,'-'))).length;
+    document.getElementById('statToday').textContent = todayCount;
+
+    // 参加者リスト
+    const list = document.getElementById('participantList');
+    if (responses.length === 0) {
+      list.innerHTML = '<div style="font-size:13px;color:var(--text-light);padding:8px 0;">まだ回答がありません</div>';
+      document.getElementById('generateBtn').disabled = true;
+    } else {
+      list.innerHTML = responses.map((r, i) =>
+        `<div class="participant-item" onclick="scrollToResponse(${i})" id="pi-${i}">
+          <div class="p-name">${esc(r.name || '（匿名）')}</div>
+          <div class="p-time">${esc(r.timestamp || '')}</div>
+        </div>`
+      ).join('');
+      document.getElementById('generateBtn').disabled = false;
+    }
+
+    // 回答一覧
+    const grid = document.getElementById('responsesGrid');
+    const empty = document.getElementById('emptyState');
+    if (responses.length === 0) {
+      empty.style.display = 'block';
+      grid.style.display = 'none';
+    } else {
+      empty.style.display = 'none';
+      grid.style.display = 'flex';
+      grid.innerHTML = responses.map((r, i) => renderCard(r, i)).join('');
+    }
+  }
+
+  function renderCard(r, i) {
+    const row = (q, val) => val ? `<div class="r-row"><div class="r-row-q">${q}</div><div class="r-row-a">${esc(val)}</div></div>` : '';
+    return `
+      <div class="response-card" id="response-${i}">
+        <div class="response-card-header">
+          <div class="r-name">${esc(r.name || '（匿名）')}</div>
+          <div class="r-time">${esc(r.timestamp || '')}</div>
+        </div>
+        <div class="response-card-body">
+          <div class="r-section mind">
+            <div class="r-section-title">🌊 心</div>
+            ${row('① 今の状態', r.mind_current)}
+            ${row('② 理想の状態', r.mind_ideal)}
+            ${row('③ 必要なこと', r.mind_needs)}
+          </div>
+          <div class="r-section body">
+            <div class="r-section-title">🌿 体</div>
+            ${row('① 今の状態', r.body_current)}
+            ${row('② 理想の状態', r.body_ideal)}
+            ${row('③ 必要なこと', r.body_needs)}
+          </div>
+          <div class="r-section soul">
+            <div class="r-section-title">✨ 魂</div>
+            ${row('① 今の状態', r.soul_current)}
+            ${row('② 理想の状態', r.soul_ideal)}
+            ${row('③ 必要なこと', r.soul_needs)}
+          </div>
+          ${r.free_comment ? `<div class="r-comment">"${esc(r.free_comment)}"</div>` : ''}
+        </div>
+      </div>`;
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ───── タブ切替 ─────
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('view-responses').style.display = tab === 'responses' ? 'block' : 'none';
+    document.getElementById('view-summary').style.display = tab === 'summary' ? 'block' : 'none';
+  }
+
+  // ───── 参加者クリック → スクロール ─────
+  function scrollToResponse(i) {
+    switchTabTo('responses');
+    setTimeout(() => {
+      const el = document.getElementById('response-' + i);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.querySelectorAll('.participant-item').forEach(p => p.classList.remove('active'));
+      document.getElementById('pi-' + i)?.classList.add('active');
+    }, 50);
+  }
+
+  function switchTabTo(tab) {
+    document.querySelectorAll('.tab').forEach((t,i) => {
+      t.classList.toggle('active', (i === 0 && tab === 'responses') || (i === 1 && tab === 'summary'));
+    });
+    document.getElementById('view-responses').style.display = tab === 'responses' ? 'block' : 'none';
+    document.getElementById('view-summary').style.display = tab === 'summary' ? 'block' : 'none';
+  }
+
+  // ───── 指針生成（Claude API） ─────
+  async function generateGuideline() {
+    if (responses.length === 0) { alert('回答がありません。'); return; }
+
+    const apiKey = localStorage.getItem(CLAUDE_API_KEY_STORAGE);
+    if (!apiKey || !apiKey.startsWith('sk-ant-')) {
+      alert('サイドバーにClaude APIキーを入力してください。\n（Anthropicダッシュボードで発行できます）');
+      return;
+    }
+
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner"></span>生成中…';
+
+    // 全回答をテキストにまとめる
+    const allText = responses.map((r, i) => `
+【回答者${i+1}: ${r.name || '匿名'}】
+■ 心
+・今の状態: ${r.mind_current || '未回答'}
+・理想の状態: ${r.mind_ideal || '未回答'}
+・必要なこと: ${r.mind_needs || '未回答'}
+■ 体
+・今の状態: ${r.body_current || '未回答'}
+・理想の状態: ${r.body_ideal || '未回答'}
+・必要なこと: ${r.body_needs || '未回答'}
+■ 魂
+・今の状態: ${r.soul_current || '未回答'}
+・理想の状態: ${r.soul_ideal || '未回答'}
+・必要なこと: ${r.soul_needs || '未回答'}
+${r.free_comment ? '■ 一言: ' + r.free_comment : ''}
+`).join('\n---\n');
+
+    const prompt = `あなたは「還りの里」というコミュニティの精神的ガイドです。
+以下は、「本来の自分に還る」というテーマで集めた、コミュニティメンバーたちの声です。
+
+${allText}
+
+これらすべての声を深く読み込み、以下を出力してください:
+
+1. 【みんなに共通する"今の状態"】
+   心・体・魂それぞれについて、共通するパターン・課題を3〜5点にまとめる
+
+2. 【還りの里で目指す「本来の自分」の姿】
+   心・体・魂それぞれについて、みんなが理想とする最高の状態を統合した言葉で表現する（詩的・哲学的でOK）
+
+3. 【コミュニティとして大切にしたい価値観・実践】
+   「必要なこと」から導き出した、還りの里が共に育んでいきたい文化・習慣・環境
+
+4. 【一文にまとめると】
+   「還りの里が目指すもの」を一文で（コミュニティの指針として掲げられる言葉）
+
+文体は温かく、詩的で、精神的な深みがあるものにしてください。
+日本語で出力してください。`;
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-calls': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-opus-4-8',
+          max_tokens: 2000,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+      const json = await res.json();
+      if (json.error) throw new Error(json.error.message);
+      const text = json.content[0].text;
+
+      const meta = `${responses.length}名の回答から生成 — ${new Date().toLocaleString('ja-JP')}`;
+      showGuideline(text, meta);
+      localStorage.setItem('kaeri_guideline', JSON.stringify({ text, meta }));
+
+      switchTabTo('summary');
+    } catch (err) {
+      alert('生成に失敗しました: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '✦ 指針を生成する';
+    }
+  }
+
+  function showGuideline(text, meta) {
+    document.getElementById('summaryMeta').textContent = meta;
+    document.getElementById('summaryContent').textContent = text;
+    document.getElementById('summaryContent').classList.remove('loading');
+    document.getElementById('copyBtn').style.display = 'inline-block';
+  }
+
+  function copySummary() {
+    const text = document.getElementById('summaryContent').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = '✅ コピーしました';
+      setTimeout(() => btn.textContent = '📋 コピーする', 2000);
+    });
+  }
+
+  // ───── CSV出力 ─────
+  function exportCSV() {
+    if (responses.length === 0) { alert('回答がありません。'); return; }
+    const headers = ['タイムスタンプ','名前','心_今の状態','心_理想','心_必要なこと','体_今の状態','体_理想','体_必要なこと','魂_今の状態','魂_理想','魂_必要なこと','一言'];
+    const rows = responses.map(r => [
+      r.timestamp, r.name,
+      r.mind_current, r.mind_ideal, r.mind_needs,
+      r.body_current, r.body_ideal, r.body_needs,
+      r.soul_current, r.soul_ideal, r.soul_needs,
+      r.free_comment,
+    ].map(v => `"${String(v||'').replace(/"/g,'""')}"`));
+    const csv = '﻿' + [headers, ...rows].map(r => r.join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = `kaeri-survey-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+  }
+
+  // ───── ダミーデータ（GAS未設定時のプレビュー） ─────
+  function getDummyData() {
+    return [
+      {
+        timestamp: '2026/6/8 10:23',
+        name: '（見本）翔吾',
+        mind_current: '感情に振り回されることがある。怒りや不安が出てきたとき、うまくコントロールできず後で後悔することがある。',
+        mind_ideal: '何があっても中心軸がぶれない、静かな愛の中にある状態。純粋な喜びの中に存在できる。毎朝起きたとき、ただ存在していることへの感謝が溢れてくる。',
+        mind_needs: '毎朝の瞑想・静寂の時間。自分の感情を裁かずに観察する練習。委ねることの日々の実践。',
+        body_current: '仕事が忙しいと睡眠を後回しにしてしまう。体の疲れに気づきながら無視して動き続けることがある。',
+        body_ideal: '体が喜んでいるのを感じられる状態。軽やかで、エネルギーに満ちている。健康的な食事・運動・睡眠のリズムが、義務でなく喜びになっている。',
+        body_needs: '規則正しい生活リズム。自然の中で過ごす時間。自分の体への感謝と丁寧な対話。',
+        soul_current: '何のために生きているのか、ふと分からなくなる瞬間がある。魂が震えるような使命感をいつも感じられているわけではない。',
+        soul_ideal: '自分が何者で、なぜここにいるのかを深く知っている状態。魂が歌っている。神様・大いなるものと繋がっている感覚がある。',
+        soul_needs: '深い内省と瞑想の時間。魂のレベルで繋がれる仲間との対話。大いなるものへの委ねと信頼。',
+        free_comment: '還りの里でみんなと一緒に探求したいです。',
+      }
+    ];
+  }
+</script>
+
+</body>
+</html>
