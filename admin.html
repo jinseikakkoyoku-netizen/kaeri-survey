@@ -516,10 +516,10 @@ ${allText}
 日本語で出力してください。`;
 
     try {
-      // GAS経由でClaude APIを呼び出す（CORSを回避）
+      // GAS経由でClaude APIを呼び出す（text/plainでプリフライト回避）
       const res = await fetch(GAS_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({ action: 'generate', prompt, apiKey }),
       });
       const json = await res.json();
